@@ -2,6 +2,7 @@ import asyncio
 import html
 import logging
 from pathlib import Path
+from urllib.parse import quote
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
@@ -95,11 +96,19 @@ def kb(rows, back=None):
     return b.as_markup()
 
 
-def result_kb():
-    """Кнопки под итогом: операторы (открывают чат) + в меню."""
+def prefilled_url(base: str, text: str) -> str:
+    """Ссылка на чат с оператором, где текст уже вставлен в поле ввода."""
+    if base.startswith("@"):
+        base = "https://t.me/" + base[1:]
+    sep = "&" if "?" in base else "?"
+    return f"{base}{sep}text={quote(text)}"
+
+
+def result_kb(summary: str):
+    """Кнопки операторов: открывают лс с уже вставленным текстом + в меню."""
     b = InlineKeyboardBuilder()
     for title, url in OPERATORS.items():
-        b.button(text=title, url=url)
+        b.button(text=title, url=prefilled_url(url, summary))
     b.button(text="🏠 В меню", callback_data="menu")
     b.adjust(1)
     return b.as_markup()
@@ -140,18 +149,19 @@ async def show_panel(c: CallbackQuery, asset: str, caption: str, reply_markup=No
 
 
 async def finish(target, user, bot: Bot, summary: str, edit: bool = False):
-    """Показывает итог одним копируемым блоком + просьбу отправить в тех поддержку."""
+    """Итог + выбор оператора. Клик по оператору открывает лс с готовым текстом."""
     text = (
-        "✅ Готово! Нажмите на сообщение ниже, чтобы скопировать, "
-        "и отправьте его в тех поддержку:\n\n"
-        f"{code(summary)}"
+        "✅ <b>Готово!</b> Ваши данные собраны:\n\n"
+        f"{code(summary)}\n\n"
+        "Выберите оператора — откроется чат с уже вставленным сообщением, "
+        "останется только нажать «Отправить»."
     )
     if SEND_TO_ADMIN:
         await send_to_admin(bot, user, code(summary))
     if edit:
-        await edit_content(target, text, result_kb())
+        await edit_content(target, text, result_kb(summary))
     else:
-        await target.answer(text, reply_markup=result_kb())
+        await target.answer(text, reply_markup=result_kb(summary))
 
 
 def main_menu():
@@ -339,10 +349,12 @@ async def d_net(c: CallbackQuery):
     coin = list(CRYPTO)[int(ci)]
     net = CRYPTO[coin][int(ni)]
     addr = DEP_CRYPTO.get((coin, net), "АДРЕС_НЕ_ЗАДАН")
+    summary = f"Пополнение: Криптовалюта\nМонета: {coin}\nСеть: {net}"
     await set_content(
         c,
-        f"Пополнение: {coin}\nСеть: {net}\n\nАдрес (нажмите, чтобы скопировать):\n{code(addr)}",
-        kb([("🏠 В меню", "menu")]),
+        f"Пополнение: {coin}\nСеть: {net}\n\nАдрес (нажмите, чтобы скопировать):\n{code(addr)}"
+        "\n\nПосле оплаты напишите оператору — выберите его ниже, сообщение вставится само:",
+        result_kb(summary),
     )
     await c.answer()
 
@@ -350,10 +362,12 @@ async def d_net(c: CallbackQuery):
 @dp.callback_query(F.data.in_({"d_bit", "d_abox"}))
 async def d_phone(c: CallbackQuery):
     method = "Бит" if c.data == "d_bit" else "Эйбокс"
+    summary = f"Пополнение: {method}"
     await set_content(
         c,
-        f"Пополнение: {method}\n\nНомер (нажмите, чтобы скопировать):\n{code(DEP_PHONE[method])}",
-        kb([("🏠 В меню", "menu")]),
+        f"Пополнение: {method}\n\nНомер (нажмите, чтобы скопировать):\n{code(DEP_PHONE[method])}"
+        "\n\nПосле оплаты напишите оператору — выберите его ниже, сообщение вставится само:",
+        result_kb(summary),
     )
     await c.answer()
 
@@ -368,10 +382,12 @@ async def d_bank(c: CallbackQuery):
 @dp.callback_query(F.data.startswith("dbank:"))
 async def d_bank_chosen(c: CallbackQuery):
     bank = BANKS[int(c.data.split(":")[1])]
+    summary = f"Пополнение: Банковский код\nБанк: {bank}"
     await set_content(
         c,
-        f"Пополнение: {bank}\n\nРеквизиты (нажмите, чтобы скопировать):\n{code(DEP_BANK[bank])}",
-        kb([("🏠 В меню", "menu")]),
+        f"Пополнение: {bank}\n\nРеквизиты (нажмите, чтобы скопировать):\n{code(DEP_BANK[bank])}"
+        "\n\nПосле оплаты напишите оператору — выберите его ниже, сообщение вставится само:",
+        result_kb(summary),
     )
     await c.answer()
 
