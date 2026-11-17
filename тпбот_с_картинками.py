@@ -16,50 +16,73 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # ================== НАСТРОЙКИ ==================
 BOT_TOKEN = "8150306808:AAGnk6RNgBee-FtLsndmGO4cptqFi0KOe-w"
-ADMIN_CHAT_ID = 8727205564  # куда приходят заявки (твой id или id группы)
 
-# Операторы поддержки: название кнопки -> ссылка или юз
-OPERATORS = {
-    "👩 Оператор (Анна)": "https://t.me/usupoq",
-    "👨 Оператор (Иван)": "https://t.me/Noikss",
-}
+# Менеджеры: (текст кнопки, ссылка или @юз)
+OPERATORS = [
+    ("סוכנת אנה", "https://t.me/usupoq"),
+    ("סוכן ניר", "https://t.me/Noikss"),
+]
 
-# Криптовалюты и сети (поменяй под себя)
+# Монеты и сети (названия на иврите — их видит клиент)
 CRYPTO = {
-    "Биткоин": ["Bitcoin"],
-    "Эфириум": ["ERC20", "Arbitrum", "Optimism"],
-    "Юсдт": ["TRC20", "ERC20", "BEP20", "TON"],
-    "Солано": ["Solana"],
-    "Бимби": ["BEP20", "ERC20"],
+    "ביטקוין": ["Bitcoin"],
+    "אתריום": ["ERC20", "Arbitrum", "Optimism"],
+    "USDT": ["TRC20", "ERC20", "BEP20", "TON"],
+    "סולאנה": ["Solana"],
+    "BNB": ["BEP20", "ERC20"],
 }
 
-BANKS = ["Дисконт", "Поалим", "Леуми"]
+BANKS = ["דיסקונט", "פועלים", "לאומי"]
 
-# True — дополнительно присылать каждую заявку в ADMIN_CHAT_ID
-# False — бот только показывает пользователю текст для копирования
-SEND_TO_ADMIN = False
-
-# Реквизиты для ПОПОЛНЕНИЯ (то, что пользователь копирует одним нажатием)
+# Реквизиты для ПОПОЛНЕНИЯ (копируются нажатием)
 DEP_CRYPTO = {  # (монета, сеть): адрес
-    ("Биткоин", "Bitcoin"): "ВСТАВЬ_АДРЕС_BTC",
-    ("Эфириум", "ERC20"): "ВСТАВЬ_АДРЕС_ETH",
-    ("Эфириум", "Arbitrum"): "ВСТАВЬ_АДРЕС_ETH",
-    ("Эфириум", "Optimism"): "ВСТАВЬ_АДРЕС_ETH",
-    ("Юсдт", "TRC20"): "ВСТАВЬ_АДРЕС_USDT_TRC20",
-    ("Юсдт", "ERC20"): "ВСТАВЬ_АДРЕС_USDT_ERC20",
-    ("Юсдт", "BEP20"): "ВСТАВЬ_АДРЕС_USDT_BEP20",
-    ("Юсдт", "TON"): "ВСТАВЬ_АДРЕС_USDT_TON",
-    ("Солано", "Solana"): "ВСТАВЬ_АДРЕС_SOL",
-    ("Бимби", "BEP20"): "ВСТАВЬ_АДРЕС",
-    ("Бимби", "ERC20"): "ВСТАВЬ_АДРЕС",
+    ("ביטקוין", "Bitcoin"): "ВСТАВЬ_АДРЕС_BTC",
+    ("אתריום", "ERC20"): "ВСТАВЬ_АДРЕС_ETH",
+    ("אתריום", "Arbitrum"): "ВСТАВЬ_АДРЕС_ETH",
+    ("אתריום", "Optimism"): "ВСТАВЬ_АДРЕС_ETH",
+    ("USDT", "TRC20"): "ВСТАВЬ_АДРЕС_USDT_TRC20",
+    ("USDT", "ERC20"): "ВСТАВЬ_АДРЕС_USDT_ERC20",
+    ("USDT", "BEP20"): "ВСТАВЬ_АДРЕС_USDT_BEP20",
+    ("USDT", "TON"): "ВСТАВЬ_АДРЕС_USDT_TON",
+    ("סולאנה", "Solana"): "ВСТАВЬ_АДРЕС_SOL",
+    ("BNB", "BEP20"): "ВСТАВЬ_АДРЕС",
+    ("BNB", "ERC20"): "ВСТАВЬ_АДРЕС",
 }
-DEP_PHONE = {"Бит": "+972XXXXXXXXX", "Эйбокс": "+972XXXXXXXXX"}
+DEP_PHONE = {"ביט": "+972XXXXXXXXX", "פייבוקס": "+972XXXXXXXXX"}
 DEP_BANK = {  # банк: реквизиты
-    "Дисконт": "ВСТАВЬ_РЕКВИЗИТЫ",
-    "Поалим": "ВСТАВЬ_РЕКВИЗИТЫ",
-    "Леуми": "ВСТАВЬ_РЕКВИЗИТЫ",
+    "דיסקונט": "ВСТАВЬ_РЕКВИЗИТЫ",
+    "פועלים": "ВСТАВЬ_РЕКВИЗИТЫ",
+    "לאומי": "ВСТАВЬ_РЕКВИЗИТЫ",
 }
+
+# Приветствие на /start (идёт вместе с кнопками и картинкой, лимит подписи 1024 символа)
+WELCOME = (
+    "⚡ <b>ברוכים הבאים ל-Flash Bet!</b> ⚡\n"
+    "המקום שבו המשחק מתחיל וההזדמנויות לא מחכות.\n\n"
+    "כאן בבוט הכל קורה במהירות הבזק, בצורה מאובטחת ובלי כאבי ראש. "
+    "מכאן אתם שולטים בהכל בלחיצת כפתור:\n"
+    "💰 הפקדה מהירה – טעינת יתרה תוך שניות.\n"
+    "💸 משיכת רווחים – קבלת הכסף שלכם בקלות ובמהירות.\n"
+    "🎧 תמיכה 24/7 – צוות השירות שלנו זמין לכל שאלה או עזרה."
+)
+
+# Описание бота — под "Что умеет этот бот?" (до 512 символов)
+BOT_DESCRIPTION = (
+    "הימורי ספורט & קזינו\n"
+    "בית ההימורים הגדול בישראל\n"
+    "זכיות ומשיכות תוך חצי שעה\n"
+    "סוכנים ותיקים 20 שנה בתחום\n"
+    "יחס אישי לכל לקוח\n"
+    "פעילות 24/7"
+)
+# Короткое описание в профиле бота (до 120 символов)
+BOT_SHORT_DESCRIPTION = "הימורי ספורט & קזינו | בית ההימורים הגדול בישראל | זכיות ומשיכות תוך חצי שעה | 24/7"
 # ===============================================
+
+BACK = "⬅️ חזרה"
+TO_MENU = "🏠 תפריט ראשי"
+PAY_HINT = "\n\nלאחר התשלום פנו לסוכן – ההודעה תוכנס אוטומטית:"
+COPY = "לחצו להעתקה"
 
 logging.basicConfig(level=logging.INFO)
 dp = Dispatcher(storage=MemoryStorage())
@@ -78,10 +101,12 @@ class Form(StatesGroup):
     wallet = State()
     phone = State()
     address = State()
+    city = State()
 
 
+# ---------- помощники ----------
 def code(x) -> str:
-    """Моноширинный текст: при нажатии в Телеграме копируется целиком."""
+    """Моноширинный текст — копируется нажатием."""
     return f"<code>{html.escape(str(x))}</code>"
 
 
@@ -91,25 +116,28 @@ def kb(rows, back=None):
     for text, data in rows:
         b.button(text=text, callback_data=data)
     if back:
-        b.button(text="⬅️ Назад", callback_data=back)
+        b.button(text=BACK, callback_data=back)
     b.adjust(1)
     return b.as_markup()
 
 
 def prefilled_url(base: str, text: str) -> str:
-    """Ссылка на чат с оператором, где текст уже вставлен в поле ввода."""
+    """Ссылка на чат с менеджером, где текст уже вставлен в поле ввода."""
     if base.startswith("@"):
         base = "https://t.me/" + base[1:]
     sep = "&" if "?" in base else "?"
     return f"{base}{sep}text={quote(text)}"
 
 
-def result_kb(summary: str):
-    """Кнопки операторов: открывают лс с уже вставленным текстом + в меню."""
+def operators_kb(summary: str | None = None, back: str | None = None, to_menu: bool = False):
+    """Кнопки менеджеров. Если есть summary — чат откроется с готовым текстом."""
     b = InlineKeyboardBuilder()
-    for title, url in OPERATORS.items():
-        b.button(text=title, url=prefilled_url(url, summary))
-    b.button(text="🏠 В меню", callback_data="menu")
+    for title, url in OPERATORS:
+        b.button(text=title, url=prefilled_url(url, summary) if summary else url)
+    if to_menu:
+        b.button(text=TO_MENU, callback_data="menu")
+    if back:
+        b.button(text=BACK, callback_data=back)
     b.adjust(1)
     return b.as_markup()
 
@@ -122,19 +150,13 @@ async def edit_content(message: Message, text: str, reply_markup=None):
         await message.edit_text(text, reply_markup=reply_markup)
 
 
-async def set_content(c: CallbackQuery, text: str, reply_markup=None):
-    """Обновляет текущий экран, сохраняя выбранную тематическую картинку."""
-    await edit_content(c.message, text, reply_markup)
-
-
 async def show_panel(c: CallbackQuery, asset: str, caption: str, reply_markup=None):
-    """Показывает красивую картинку экрана без создания лишних сообщений."""
+    """Экран с картинкой (если файла нет — просто текст)."""
     path = ASSETS[asset]
     if not path.is_file():
-        logging.warning("Не найдена картинка интерфейса: %s", path)
-        await set_content(c, caption, reply_markup)
+        logging.warning("Не найдена картинка: %s", path)
+        await edit_content(c.message, caption, reply_markup)
         return
-
     media = InputMediaPhoto(media=FSInputFile(path), caption=caption)
     if c.message.photo:
         await c.message.edit_media(media=media, reply_markup=reply_markup)
@@ -148,97 +170,75 @@ async def show_panel(c: CallbackQuery, asset: str, caption: str, reply_markup=No
         )
 
 
-async def finish(target, user, bot: Bot, summary: str, edit: bool = False):
-    """Итог + выбор оператора. Клик по оператору открывает лс с готовым текстом."""
+async def finish(target, summary: str, edit: bool = False):
+    """Итог цепочки + выбор менеджера: чат откроется с уже вставленным текстом."""
     text = (
-        "✅ <b>Готово!</b> Ваши данные собраны:\n\n"
+        "✅ <b>הכל מוכן!</b>\n\n"
         f"{code(summary)}\n\n"
-        "Выберите оператора — откроется чат с уже вставленным сообщением, "
-        "останется только нажать «Отправить»."
+        "בחרו סוכן – ייפתח צ'אט עם הודעה מוכנה, נשאר רק ללחוץ על שליחה."
     )
-    if SEND_TO_ADMIN:
-        await send_to_admin(bot, user, code(summary))
+    kbd = operators_kb(summary, to_menu=True)
     if edit:
-        await edit_content(target, text, result_kb(summary))
+        await edit_content(target, text, kbd)
     else:
-        await target.answer(text, reply_markup=result_kb(summary))
+        await target.answer(text, reply_markup=kbd)
 
 
+# ---------- меню ----------
 def main_menu():
     return kb([
-        ("💸 Вывод", "withdraw"),
-        ("➕ Пополнение", "deposit"),
-        ("📝 Регистрация", "register"),
-        ("🛟 Поддержка", "support"),
+        ("💸 משיכה", "withdraw"),
+        ("➕ הפקדה", "deposit"),
+        ("📝 הרשמה לאתר", "register"),
+        ("🛟 תמיכה", "support"),
     ])
 
 
-def user_tag(obj) -> str:
-    u = obj.from_user
-    name = f"@{u.username}" if u.username else u.full_name
-    return f"{name} (id {u.id})"
-
-
-async def send_to_admin(bot: Bot, user, text: str):
-    u = user
-    name = f"@{u.username}" if u.username else u.full_name
-    await bot.send_message(
-        ADMIN_CHAT_ID,
-        f"📥 Новая заявка\nОт: {html.escape(name)} (id {u.id})\n\n{text}",
-    )
-
-
-# ---------- /start и главное меню ----------
 @dp.message(CommandStart())
 async def start(m: Message, state: FSMContext):
     await state.clear()
-    await m.answer_photo(
-        photo=FSInputFile(ASSETS["menu"]),
-        caption="✨ <b>Добро пожаловать!</b>\n\nВыберите нужное действие:",
-        reply_markup=main_menu(),
-    )
+    path = ASSETS["menu"]
+    if path.is_file():
+        await m.answer_photo(photo=FSInputFile(path), caption=WELCOME, reply_markup=main_menu())
+    else:
+        await m.answer(WELCOME, reply_markup=main_menu())
 
 
 @dp.callback_query(F.data == "menu")
 async def menu(c: CallbackQuery, state: FSMContext):
     await state.clear()
-    await show_panel(
-        c,
-        "menu",
-        "✨ <b>Главное меню</b>\n\nВыберите нужное действие:",
-        main_menu(),
-    )
+    await show_panel(c, "menu", WELCOME, main_menu())
     await c.answer()
 
 
-# ---------- Вывод ----------
+# ---------- משיכה (Вывод) ----------
 @dp.callback_query(F.data == "withdraw")
 async def withdraw(c: CallbackQuery, state: FSMContext):
     await state.clear()
-    await show_panel(c, "withdraw", "💸 <b>Вывод средств</b>\n\nВыберите способ вывода:", kb([
-        ("Криптовалюта", "w_crypto"),
-        ("Бит", "w_bit"),
-        ("Эйбокс", "w_abox"),
-        ("Курьер", "w_courier"),
-        ("Банковский код", "w_bank"),
+    await show_panel(c, "withdraw", "💸 <b>משיכה</b>\nבחרו שיטת משיכה:", kb([
+        ("מטבע דיגיטלי", "w_crypto"),
+        ("ביט", "w_bit"),
+        ("פייבוקס", "w_pbox"),
+        ("שליח", "w_courier"),
+        ("קוד משיכה", "w_bank"),
     ], back="menu"))
     await c.answer()
 
 
-# --- Криптовалюта ---
+# --- מטבע דיגיטלי ---
 @dp.callback_query(F.data == "w_crypto")
 async def w_crypto(c: CallbackQuery):
-    rows = [(name, f"coin:{name}") for name in CRYPTO]
-    await set_content(c, "Выберите криптовалюту:", kb(rows, back="withdraw"))
+    rows = [(name, f"coin:{i}") for i, name in enumerate(CRYPTO)]
+    await edit_content(c.message, "בחרו מטבע:", kb(rows, back="withdraw"))
     await c.answer()
 
 
 @dp.callback_query(F.data.startswith("coin:"))
 async def coin_chosen(c: CallbackQuery, state: FSMContext):
-    coin = c.data.split(":", 1)[1]
-    await state.update_data(method="Криптовалюта", coin=coin)
+    coin = list(CRYPTO)[int(c.data.split(":")[1])]
+    await state.update_data(coin=coin)
     await state.set_state(Form.wallet)
-    await set_content(c, f"Вы выбрали: {coin}\n\nВведите адрес кошелька:")
+    await edit_content(c.message, f"בחרתם: {coin}\n\nהזינו כתובת ארנק:")
     await c.answer()
 
 
@@ -246,83 +246,98 @@ async def coin_chosen(c: CallbackQuery, state: FSMContext):
 async def got_wallet(m: Message, state: FSMContext):
     await state.update_data(wallet=m.text.strip())
     data = await state.get_data()
-    nets = CRYPTO[data["coin"]]
-    rows = [(n, f"net:{i}") for i, n in enumerate(nets)]
-    await m.answer("Выберите сеть:", reply_markup=kb(rows))
+    rows = [(n, f"net:{i}") for i, n in enumerate(CRYPTO[data["coin"]])]
+    await m.answer("בחרו רשת:", reply_markup=kb(rows))
 
 
 @dp.callback_query(F.data.startswith("net:"))
-async def net_chosen(c: CallbackQuery, state: FSMContext, bot: Bot):
+async def net_chosen(c: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     if not data.get("coin"):
-        await c.answer("Сессия устарела, начните заново: /start", show_alert=True)
+        await c.answer("יש להתחיל מחדש: /start", show_alert=True)
         return
     net = CRYPTO[data["coin"]][int(c.data.split(":")[1])]
-    summary = (f"Вывод: Криптовалюта\nМонета: {data['coin']}\n"
-               f"Сеть: {net}\nКошелёк: {data['wallet']}")
+    summary = (
+        "משיכה: מטבע דיגיטלי\n"
+        f"מטבע: {data['coin']}\n"
+        f"רשת: {net}\n"
+        f"כתובת ארנק: {data['wallet']}"
+    )
     await state.clear()
-    await finish(c.message, c.from_user, bot, summary, edit=True)
+    await finish(c.message, summary, edit=True)
     await c.answer()
 
 
-# --- Бит / Эйбокс (телефон) ---
-@dp.callback_query(F.data.in_({"w_bit", "w_abox"}))
+# --- ביט / פייבוקס (телефон) ---
+@dp.callback_query(F.data.in_({"w_bit", "w_pbox"}))
 async def w_phone(c: CallbackQuery, state: FSMContext):
-    method = "Бит" if c.data == "w_bit" else "Эйбокс"
+    method = "ביט" if c.data == "w_bit" else "פייבוקס"
     await state.update_data(method=method)
     await state.set_state(Form.phone)
-    await set_content(c, f"Вывод: {method}\n\nВведите номер телефона:")
+    await edit_content(c.message, f"משיכה: {method}\n\nהזינו מספר טלפון:")
     await c.answer()
 
 
 @dp.message(Form.phone)
-async def got_phone(m: Message, state: FSMContext, bot: Bot):
+async def got_phone(m: Message, state: FSMContext):
     data = await state.get_data()
-    summary = f"Вывод: {data['method']}\nТелефон: {m.text.strip()}"
+    summary = f"משיכה: {data['method']}\nטלפון: {m.text.strip()}"
     await state.clear()
-    await finish(m, m.from_user, bot, summary)
+    await finish(m, summary)
 
 
-# --- Курьер (адрес) ---
+# --- שליח (адрес, потом город) ---
 @dp.callback_query(F.data == "w_courier")
 async def w_courier(c: CallbackQuery, state: FSMContext):
-    await state.update_data(method="Курьер")
     await state.set_state(Form.address)
-    await set_content(c, "Вывод: Курьер\n\nВведите адрес:")
+    await edit_content(c.message, "משיכה: שליח\n\nהזינו כתובת:")
     await c.answer()
 
 
 @dp.message(Form.address)
-async def got_address(m: Message, state: FSMContext, bot: Bot):
-    summary = f"Вывод: Курьер\nАдрес: {m.text.strip()}"
+async def got_address(m: Message, state: FSMContext):
+    await state.update_data(address=m.text.strip())
+    await state.set_state(Form.city)
+    await m.answer("הזינו עיר:")
+
+
+@dp.message(Form.city)
+async def got_city(m: Message, state: FSMContext):
+    data = await state.get_data()
+    summary = (
+        "משיכה: שליח\n"
+        f"כתובת: {data['address']}\n"
+        f"עיר: {m.text.strip()}"
+    )
     await state.clear()
-    await finish(m, m.from_user, bot, summary)
+    await finish(m, summary)
 
 
-# --- Банковский код ---
+# --- קוד משיכה (банковский код) ---
 @dp.callback_query(F.data == "w_bank")
 async def w_bank(c: CallbackQuery):
     rows = [(b, f"bank:{i}") for i, b in enumerate(BANKS)]
-    await set_content(c, "Выберите банк:", kb(rows, back="withdraw"))
+    await edit_content(c.message, "בחרו בנק:", kb(rows, back="withdraw"))
     await c.answer()
 
 
 @dp.callback_query(F.data.startswith("bank:"))
-async def bank_chosen(c: CallbackQuery, bot: Bot):
+async def bank_chosen(c: CallbackQuery):
     bank = BANKS[int(c.data.split(":")[1])]
-    summary = f"Вывод: Банковский код\nБанк: {bank}"
-    await finish(c.message, c.from_user, bot, summary, edit=True)
+    summary = f"משיכה: קוד משיכה\nבנק: {bank}"
+    await finish(c.message, summary, edit=True)
     await c.answer()
 
 
-# ---------- Пополнение ----------
+# ---------- הפקדה (Пополнение) ----------
 @dp.callback_query(F.data == "deposit")
-async def deposit(c: CallbackQuery):
-    await show_panel(c, "deposit", "➕ <b>Пополнение</b>\n\nВыберите способ пополнения:", kb([
-        ("Криптовалюта", "d_crypto"),
-        ("Бит", "d_bit"),
-        ("Эйбокс", "d_abox"),
-        ("Банковский код", "d_bank"),
+async def deposit(c: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await show_panel(c, "deposit", "➕ <b>הפקדה</b>\nבחרו שיטת הפקדה:", kb([
+        ("מטבע דיגיטלי", "d_crypto"),
+        ("ביט", "d_bit"),
+        ("פייבוקס", "d_pbox"),
+        ("קוד משיכה", "d_bank"),
     ], back="menu"))
     await c.answer()
 
@@ -330,7 +345,7 @@ async def deposit(c: CallbackQuery):
 @dp.callback_query(F.data == "d_crypto")
 async def d_crypto(c: CallbackQuery):
     rows = [(name, f"dcoin:{i}") for i, name in enumerate(CRYPTO)]
-    await set_content(c, "Выберите криптовалюту:", kb(rows, back="deposit"))
+    await edit_content(c.message, "בחרו מטבע:", kb(rows, back="deposit"))
     await c.answer()
 
 
@@ -339,7 +354,7 @@ async def d_coin(c: CallbackQuery):
     ci = int(c.data.split(":")[1])
     coin = list(CRYPTO)[ci]
     rows = [(n, f"dnet:{ci}:{ni}") for ni, n in enumerate(CRYPTO[coin])]
-    await set_content(c, f"{coin}\n\nВыберите сеть:", kb(rows, back="d_crypto"))
+    await edit_content(c.message, f"{coin}\n\nבחרו רשת:", kb(rows, back="d_crypto"))
     await c.answer()
 
 
@@ -348,26 +363,24 @@ async def d_net(c: CallbackQuery):
     _, ci, ni = c.data.split(":")
     coin = list(CRYPTO)[int(ci)]
     net = CRYPTO[coin][int(ni)]
-    addr = DEP_CRYPTO.get((coin, net), "АДРЕС_НЕ_ЗАДАН")
-    summary = f"Пополнение: Криптовалюта\nМонета: {coin}\nСеть: {net}"
-    await set_content(
-        c,
-        f"Пополнение: {coin}\nСеть: {net}\n\nАдрес (нажмите, чтобы скопировать):\n{code(addr)}"
-        "\n\nПосле оплаты напишите оператору — выберите его ниже, сообщение вставится само:",
-        result_kb(summary),
+    addr = DEP_CRYPTO.get((coin, net), "ADDRESS_NOT_SET")
+    summary = f"הפקדה: מטבע דיגיטלי\nמטבע: {coin}\nרשת: {net}"
+    await edit_content(
+        c.message,
+        f"{coin} | {net}\n\nכתובת ({COPY}):\n{code(addr)}{PAY_HINT}",
+        operators_kb(summary, to_menu=True),
     )
     await c.answer()
 
 
-@dp.callback_query(F.data.in_({"d_bit", "d_abox"}))
+@dp.callback_query(F.data.in_({"d_bit", "d_pbox"}))
 async def d_phone(c: CallbackQuery):
-    method = "Бит" if c.data == "d_bit" else "Эйбокс"
-    summary = f"Пополнение: {method}"
-    await set_content(
-        c,
-        f"Пополнение: {method}\n\nНомер (нажмите, чтобы скопировать):\n{code(DEP_PHONE[method])}"
-        "\n\nПосле оплаты напишите оператору — выберите его ниже, сообщение вставится само:",
-        result_kb(summary),
+    method = "ביט" if c.data == "d_bit" else "פייבוקס"
+    summary = f"הפקדה: {method}"
+    await edit_content(
+        c.message,
+        f"{method}\n\nמספר ({COPY}):\n{code(DEP_PHONE[method])}{PAY_HINT}",
+        operators_kb(summary, to_menu=True),
     )
     await c.answer()
 
@@ -375,54 +388,54 @@ async def d_phone(c: CallbackQuery):
 @dp.callback_query(F.data == "d_bank")
 async def d_bank(c: CallbackQuery):
     rows = [(b, f"dbank:{i}") for i, b in enumerate(BANKS)]
-    await set_content(c, "Выберите банк:", kb(rows, back="deposit"))
+    await edit_content(c.message, "בחרו בנק:", kb(rows, back="deposit"))
     await c.answer()
 
 
 @dp.callback_query(F.data.startswith("dbank:"))
 async def d_bank_chosen(c: CallbackQuery):
     bank = BANKS[int(c.data.split(":")[1])]
-    summary = f"Пополнение: Банковский код\nБанк: {bank}"
-    await set_content(
-        c,
-        f"Пополнение: {bank}\n\nРеквизиты (нажмите, чтобы скопировать):\n{code(DEP_BANK[bank])}"
-        "\n\nПосле оплаты напишите оператору — выберите его ниже, сообщение вставится само:",
-        result_kb(summary),
+    summary = f"הפקדה: קוד משיכה\nבנק: {bank}"
+    await edit_content(
+        c.message,
+        f"{bank}\n\nפרטים ({COPY}):\n{code(DEP_BANK[bank])}{PAY_HINT}",
+        operators_kb(summary, to_menu=True),
     )
     await c.answer()
 
 
-# ---------- Регистрация (в ТЗ не описана — заглушка) ----------
+# ---------- הרשמה לאתר: только выбор менеджера ----------
 @dp.callback_query(F.data == "register")
 async def register(c: CallbackQuery):
     await show_panel(
         c,
         "register",
-        "📝 <b>Регистрация</b>\n\nРаздел находится в разработке.",
-        kb([], back="menu"),
+        "📝 <b>הרשמה לאתר</b>\nבחרו סוכן:",
+        operators_kb("הרשמה לאתר", back="menu"),
     )
     await c.answer()
 
 
-# ---------- Поддержка ----------
+# ---------- תמיכה ----------
 @dp.callback_query(F.data == "support")
 async def support(c: CallbackQuery):
-    b = InlineKeyboardBuilder()
-    for title, url in OPERATORS.items():
-        b.button(text=title, url=url)  # открывает чат с оператором
-    b.button(text="⬅️ Назад", callback_data="menu")
-    b.adjust(1)
     await show_panel(
         c,
         "support",
-        "🛟 <b>Поддержка</b>\n\nВыберите оператора:",
-        b.as_markup(),
+        "🛟 <b>תמיכה</b>\nבחרו סוכן:",
+        operators_kb(back="menu"),
     )
     await c.answer()
 
 
 async def main():
     bot = Bot(BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    # описание бота ("Что умеет этот бот?") и короткое описание в профиле
+    try:
+        await bot.set_my_description(description=BOT_DESCRIPTION)
+        await bot.set_my_short_description(short_description=BOT_SHORT_DESCRIPTION)
+    except Exception as e:
+        logging.warning("Не удалось выставить описание бота: %s", e)
     await dp.start_polling(bot)
 
 
