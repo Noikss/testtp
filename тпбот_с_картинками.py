@@ -19,17 +19,17 @@ BOT_TOKEN = "8150306808:AAGnk6RNgBee-FtLsndmGO4cptqFi0KOe-w"
 
 # Менеджеры: (текст кнопки, ссылка или @юз)
 OPERATORS = [
-    ("סוכנת אנה", "https://t.me/usupoq"),
-    ("סוכן ניר", "https://t.me/Noikss"),
+    ("סוכנת אנה 🦸‍♀️", "https://t.me/usupoq"),
+    ("סוכן ניר 🦸‍♂️", "https://t.me/Noikss"),
 ]
 
 # Монеты и сети (названия на иврите — их видит клиент)
 CRYPTO = {
     "ביטקוין": ["Bitcoin"],
-    "אתריום": ["ERC20", "Arbitrum", "Optimism"],
+    "אתריום": ["ERC20"],
     "USDT": ["TRC20", "ERC20", "BEP20", "TON"],
     "סולאנה": ["Solana"],
-    "BNB": ["BEP20", "ERC20"],
+    "BNB": ["BEP20"],
 }
 
 BANKS = ["דיסקונט", "פועלים", "לאומי"]
@@ -38,21 +38,32 @@ BANKS = ["דיסקונט", "פועלים", "לאומי"]
 DEP_CRYPTO = {  # (монета, сеть): адрес
     ("ביטקוין", "Bitcoin"): "ВСТАВЬ_АДРЕС_BTC",
     ("אתריום", "ERC20"): "ВСТАВЬ_АДРЕС_ETH",
-    ("אתריום", "Arbitrum"): "ВСТАВЬ_АДРЕС_ETH",
-    ("אתריום", "Optimism"): "ВСТАВЬ_АДРЕС_ETH",
     ("USDT", "TRC20"): "ВСТАВЬ_АДРЕС_USDT_TRC20",
     ("USDT", "ERC20"): "ВСТАВЬ_АДРЕС_USDT_ERC20",
     ("USDT", "BEP20"): "ВСТАВЬ_АДРЕС_USDT_BEP20",
     ("USDT", "TON"): "ВСТАВЬ_АДРЕС_USDT_TON",
     ("סולאנה", "Solana"): "ВСТАВЬ_АДРЕС_SOL",
     ("BNB", "BEP20"): "ВСТАВЬ_АДРЕС",
-    ("BNB", "ERC20"): "ВСТАВЬ_АДРЕС",
 }
 DEP_PHONE = {"ביט": "+972XXXXXXXXX", "פייבוקס": "+972XXXXXXXXX"}
-DEP_BANK = {  # банк: реквизиты
-    "דיסקונט": "ВСТАВЬ_РЕКВИЗИТЫ",
-    "פועלים": "ВСТАВЬ_РЕКВИЗИТЫ",
-    "לאומי": "ВСТАВЬ_РЕКВИЗИТЫ",
+
+# Пополнение через банк: какие поля просить у клиента (по порядку)
+BANK_FIELDS = {
+    "פועלים": ["code", "amount", "date"],
+    "לאומי": ["code", "amount", "id"],
+    "דיסקונט": ["code", "amount"],
+}
+FIELD_PROMPT = {  # что спрашиваем
+    "code": "הקלד קוד",
+    "amount": "הזינו סכום",
+    "date": "הזינו תאריך",
+    "id": "הזינו ת״ז",
+}
+FIELD_LABEL = {  # как подписываем в итоговом сообщении
+    "code": "קוד",
+    "amount": "סכום",
+    "date": "תאריך",
+    "id": "ת״ז",
 }
 
 # Приветствие на /start (идёт вместе с кнопками и картинкой, лимит подписи 1024 символа)
@@ -102,6 +113,7 @@ class Form(StatesGroup):
     phone = State()
     address = State()
     city = State()
+    bank_input = State()
 
 
 # ---------- помощники ----------
@@ -233,39 +245,44 @@ async def w_crypto(c: CallbackQuery):
     await c.answer()
 
 
+async def ask_wallet(message: Message, state: FSMContext, coin: str, net: str):
+    await state.update_data(coin=coin, net=net)
+    await state.set_state(Form.wallet)
+    await edit_content(message, f"{coin} | {net}\n\nהזינו כתובת ארנק:")
+
+
 @dp.callback_query(F.data.startswith("coin:"))
 async def coin_chosen(c: CallbackQuery, state: FSMContext):
-    coin = list(CRYPTO)[int(c.data.split(":")[1])]
-    await state.update_data(coin=coin)
-    await state.set_state(Form.wallet)
-    await edit_content(c.message, f"בחרתם: {coin}\n\nהזינו כתובת ארנק:")
+    ci = int(c.data.split(":")[1])
+    coin = list(CRYPTO)[ci]
+    nets = CRYPTO[coin]
+    if len(nets) == 1:  # сеть одна — сразу просим адрес
+        await ask_wallet(c.message, state, coin, nets[0])
+    else:
+        rows = [(n, f"net:{ci}:{ni}") for ni, n in enumerate(nets)]
+        await edit_content(c.message, f"בחרתם: {coin}\n\nבחרו רשת:", kb(rows, back="w_crypto"))
     await c.answer()
-
-
-@dp.message(Form.wallet)
-async def got_wallet(m: Message, state: FSMContext):
-    await state.update_data(wallet=m.text.strip())
-    data = await state.get_data()
-    rows = [(n, f"net:{i}") for i, n in enumerate(CRYPTO[data["coin"]])]
-    await m.answer("בחרו רשת:", reply_markup=kb(rows))
 
 
 @dp.callback_query(F.data.startswith("net:"))
 async def net_chosen(c: CallbackQuery, state: FSMContext):
+    _, ci, ni = c.data.split(":")
+    coin = list(CRYPTO)[int(ci)]
+    await ask_wallet(c.message, state, coin, CRYPTO[coin][int(ni)])
+    await c.answer()
+
+
+@dp.message(Form.wallet, F.text)
+async def got_wallet(m: Message, state: FSMContext):
     data = await state.get_data()
-    if not data.get("coin"):
-        await c.answer("יש להתחיל מחדש: /start", show_alert=True)
-        return
-    net = CRYPTO[data["coin"]][int(c.data.split(":")[1])]
     summary = (
         "משיכה: מטבע דיגיטלי\n"
         f"מטבע: {data['coin']}\n"
-        f"רשת: {net}\n"
-        f"כתובת ארנק: {data['wallet']}"
+        f"רשת: {data['net']}\n"
+        f"כתובת ארנק: {m.text.strip()}"
     )
     await state.clear()
-    await finish(c.message, summary, edit=True)
-    await c.answer()
+    await finish(m, summary)
 
 
 # --- ביט / פייבוקס (телефон) ---
@@ -278,7 +295,7 @@ async def w_phone(c: CallbackQuery, state: FSMContext):
     await c.answer()
 
 
-@dp.message(Form.phone)
+@dp.message(Form.phone, F.text)
 async def got_phone(m: Message, state: FSMContext):
     data = await state.get_data()
     summary = f"משיכה: {data['method']}\nטלפון: {m.text.strip()}"
@@ -286,28 +303,28 @@ async def got_phone(m: Message, state: FSMContext):
     await finish(m, summary)
 
 
-# --- שליח (адрес, потом город) ---
+# --- שליח (сначала город, потом адрес) ---
 @dp.callback_query(F.data == "w_courier")
 async def w_courier(c: CallbackQuery, state: FSMContext):
-    await state.set_state(Form.address)
-    await edit_content(c.message, "משיכה: שליח\n\nהזינו כתובת:")
+    await state.set_state(Form.city)
+    await edit_content(c.message, "משיכה: שליח\n\nהזינו עיר:")
     await c.answer()
 
 
-@dp.message(Form.address)
-async def got_address(m: Message, state: FSMContext):
-    await state.update_data(address=m.text.strip())
-    await state.set_state(Form.city)
-    await m.answer("הזינו עיר:")
-
-
-@dp.message(Form.city)
+@dp.message(Form.city, F.text)
 async def got_city(m: Message, state: FSMContext):
+    await state.update_data(city=m.text.strip())
+    await state.set_state(Form.address)
+    await m.answer("הזינו כתובת:")
+
+
+@dp.message(Form.address, F.text)
+async def got_address(m: Message, state: FSMContext):
     data = await state.get_data()
     summary = (
         "משיכה: שליח\n"
-        f"כתובת: {data['address']}\n"
-        f"עיר: {m.text.strip()}"
+        f"עיר: {data['city']}\n"
+        f"כתובת: {m.text.strip()}"
     )
     await state.clear()
     await finish(m, summary)
@@ -349,12 +366,26 @@ async def d_crypto(c: CallbackQuery):
     await c.answer()
 
 
+async def show_deposit_address(message: Message, coin: str, net: str):
+    addr = DEP_CRYPTO.get((coin, net), "ADDRESS_NOT_SET")
+    summary = f"הפקדה: מטבע דיגיטלי\nמטבע: {coin}\nרשת: {net}"
+    await edit_content(
+        message,
+        f"{coin} | {net}\n\nכתובת ({COPY}):\n{code(addr)}{PAY_HINT}",
+        operators_kb(summary, to_menu=True),
+    )
+
+
 @dp.callback_query(F.data.startswith("dcoin:"))
 async def d_coin(c: CallbackQuery):
     ci = int(c.data.split(":")[1])
     coin = list(CRYPTO)[ci]
-    rows = [(n, f"dnet:{ci}:{ni}") for ni, n in enumerate(CRYPTO[coin])]
-    await edit_content(c.message, f"{coin}\n\nבחרו רשת:", kb(rows, back="d_crypto"))
+    nets = CRYPTO[coin]
+    if len(nets) == 1:  # сеть одна — сразу показываем адрес
+        await show_deposit_address(c.message, coin, nets[0])
+    else:
+        rows = [(n, f"dnet:{ci}:{ni}") for ni, n in enumerate(nets)]
+        await edit_content(c.message, f"{coin}\n\nבחרו רשת:", kb(rows, back="d_crypto"))
     await c.answer()
 
 
@@ -362,14 +393,7 @@ async def d_coin(c: CallbackQuery):
 async def d_net(c: CallbackQuery):
     _, ci, ni = c.data.split(":")
     coin = list(CRYPTO)[int(ci)]
-    net = CRYPTO[coin][int(ni)]
-    addr = DEP_CRYPTO.get((coin, net), "ADDRESS_NOT_SET")
-    summary = f"הפקדה: מטבע דיגיטלי\nמטבע: {coin}\nרשת: {net}"
-    await edit_content(
-        c.message,
-        f"{coin} | {net}\n\nכתובת ({COPY}):\n{code(addr)}{PAY_HINT}",
-        operators_kb(summary, to_menu=True),
-    )
+    await show_deposit_address(c.message, coin, CRYPTO[coin][int(ni)])
     await c.answer()
 
 
@@ -385,6 +409,7 @@ async def d_phone(c: CallbackQuery):
     await c.answer()
 
 
+# --- הפקדה через банк: код / сумма / дата или ת״ז (набор полей зависит от банка) ---
 @dp.callback_query(F.data == "d_bank")
 async def d_bank(c: CallbackQuery):
     rows = [(b, f"dbank:{i}") for i, b in enumerate(BANKS)]
@@ -392,16 +417,38 @@ async def d_bank(c: CallbackQuery):
     await c.answer()
 
 
+async def ask_bank_field(target: Message, bank: str, step: int, edit: bool = False):
+    text = f"{bank}\n\n{FIELD_PROMPT[BANK_FIELDS[bank][step]]}:"
+    if edit:
+        await edit_content(target, text)
+    else:
+        await target.answer(text)
+
+
 @dp.callback_query(F.data.startswith("dbank:"))
-async def d_bank_chosen(c: CallbackQuery):
+async def d_bank_chosen(c: CallbackQuery, state: FSMContext):
     bank = BANKS[int(c.data.split(":")[1])]
-    summary = f"הפקדה: קוד משיכה\nבנק: {bank}"
-    await edit_content(
-        c.message,
-        f"{bank}\n\nפרטים ({COPY}):\n{code(DEP_BANK[bank])}{PAY_HINT}",
-        operators_kb(summary, to_menu=True),
-    )
+    await state.update_data(bank=bank, step=0, answers={})
+    await state.set_state(Form.bank_input)
+    await ask_bank_field(c.message, bank, 0, edit=True)
     await c.answer()
+
+
+@dp.message(Form.bank_input, F.text)
+async def got_bank_field(m: Message, state: FSMContext):
+    data = await state.get_data()
+    bank, step = data["bank"], data["step"]
+    fields = BANK_FIELDS[bank]
+    answers = {**data["answers"], fields[step]: m.text.strip()}
+    step += 1
+    if step < len(fields):
+        await state.update_data(step=step, answers=answers)
+        await ask_bank_field(m, bank, step)
+        return
+    lines = ["הפקדה: קוד משיכה", f"בנק: {bank}"]
+    lines += [f"{FIELD_LABEL[k]}: {answers[k]}" for k in fields]
+    await state.clear()
+    await finish(m, "\n".join(lines))
 
 
 # ---------- הרשמה לאתר: только выбор менеджера ----------
