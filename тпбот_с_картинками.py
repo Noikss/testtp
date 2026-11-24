@@ -1,5 +1,6 @@
 import asyncio
 import html
+import json
 import logging
 from pathlib import Path
 from urllib.parse import quote
@@ -7,7 +8,7 @@ from urllib.parse import quote
 from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
+from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -16,6 +17,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # ================== НАСТРОЙКИ ==================
 BOT_TOKEN = "8150306808:AAGnk6RNgBee-FtLsndmGO4cptqFi0KOe-w"
+
+# Кто может менять реквизиты прямо из Телеграма (числовые id; узнать свой — бот @userinfobot)
+ADMIN_IDS = [1971359252]
 
 # Менеджеры: (текст кнопки, ссылка или @юз)
 OPERATORS = [
@@ -27,25 +31,36 @@ OPERATORS = [
 CRYPTO = {
     "ביטקוין": ["Bitcoin"],
     "אתריום": ["ERC20"],
-    "USDT": ["TRC20", "ERC20", "BEP20", "TON"],
+    "USDT": ["TRC20", "ERC20"],
     "סולאנה": ["Solana"],
     "BNB": ["BEP20"],
 }
 
 BANKS = ["דיסקונט", "פועלים", "לאומי"]
 
-# Реквизиты для ПОПОЛНЕНИЯ (копируются нажатием)
-DEP_CRYPTO = {  # (монета, сеть): адрес
-    ("ביטקוין", "Bitcoin"): "ВСТАВЬ_АДРЕС_BTC",
-    ("אתריום", "ERC20"): "ВСТАВЬ_АДРЕС_ETH",
-    ("USDT", "TRC20"): "ВСТАВЬ_АДРЕС_USDT_TRC20",
-    ("USDT", "ERC20"): "ВСТАВЬ_АДРЕС_USDT_ERC20",
-    ("USDT", "BEP20"): "ВСТАВЬ_АДРЕС_USDT_BEP20",
-    ("USDT", "TON"): "ВСТАВЬ_АДРЕС_USDT_TON",
-    ("סולאנה", "Solana"): "ВСТАВЬ_АДРЕС_SOL",
-    ("BNB", "BEP20"): "ВСТАВЬ_АДРЕС",
+# ---- Реквизиты для ПОПОЛНЕНИЯ ----
+# Значения здесь — стартовые. Менять каждый день не нужно в коде:
+# админ пишет боту в Телеграме /set ключ значение (см. ниже), и бот сохраняет это в requisites.json.
+DEP_KEYS = {  # (монета, сеть) -> ключ реквизита
+    ("ביטקוין", "Bitcoin"): "btc",
+    ("אתריום", "ERC20"): "eth",
+    ("USDT", "TRC20"): "usdt_trc20",
+    ("USDT", "ERC20"): "usdt_erc20",
+    ("סולאנה", "Solana"): "sol",
+    ("BNB", "BEP20"): "bnb",
 }
-DEP_PHONE = {"ביט": "+972XXXXXXXXX", "פייבוקס": "+972XXXXXXXXX"}
+DEFAULT_REQUISITES = {
+    "btc": "bc1qqtgc73dy7kf3f7z7k88dl3zl2rqfrmg5llj5aq",
+    "eth": "0xC3c61Dd98762C5977AeC2A9dF974DCE9C7a3EB50",
+    "usdt_trc20": "TVEoME5E1kVqjqb3nhXcPepJg8vwTeZjDa",
+    "usdt_erc20": "0xC3c61Dd98762C5977AeC2A9dF974DCE9C7a3EB50",
+    "sol": "5dUasDTJ9pi8aEVuEg3gySZrac2TAPpTEvBoenRKcLZp",
+    "bnb": "ВСТАВЬ_АДРЕС_BNB",
+    "bit": "+972XXXXXXXXX",
+    "paybox": "+972XXXXXXXXX",
+}
+PHONE_KEYS = {"ביט": "bit", "פייבוקס": "paybox"}
+REQ_FILE = Path(__file__).with_name("requisites.json")
 
 # Пополнение через банк: какие поля просить у клиента (по порядку)
 BANK_FIELDS = {
@@ -114,6 +129,27 @@ class Form(StatesGroup):
     address = State()
     city = State()
     bank_input = State()
+
+
+# ---------- реквизиты (читаются из файла при каждом показе) ----------
+def load_requisites() -> dict:
+    data = dict(DEFAULT_REQUISITES)
+    try:
+        data.update(json.loads(REQ_FILE.read_text(encoding="utf-8")))
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        logging.warning("requisites.json повреждён, беру стартовые значения: %s", e)
+    return data
+
+
+def save_requisite(key: str, value: str):
+    try:
+        saved = json.loads(REQ_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        saved = {}
+    saved[key] = value
+    REQ_FILE.write_text(json.dumps(saved, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 # ---------- помощники ----------
@@ -367,7 +403,7 @@ async def d_crypto(c: CallbackQuery):
 
 
 async def show_deposit_address(message: Message, coin: str, net: str):
-    addr = DEP_CRYPTO.get((coin, net), "ADDRESS_NOT_SET")
+    addr = load_requisites().get(DEP_KEYS.get((coin, net), ""), "ADDRESS_NOT_SET")
     summary = f"הפקדה: מטבע דיגיטלי\nמטבע: {coin}\nרשת: {net}"
     await edit_content(
         message,
@@ -403,7 +439,7 @@ async def d_phone(c: CallbackQuery):
     summary = f"הפקדה: {method}"
     await edit_content(
         c.message,
-        f"{method}\n\nמספר ({COPY}):\n{code(DEP_PHONE[method])}{PAY_HINT}",
+        f"{method}\n\nמספר ({COPY}):\n{code(load_requisites()[PHONE_KEYS[method]])}{PAY_HINT}",
         operators_kb(summary, to_menu=True),
     )
     await c.answer()
@@ -473,6 +509,37 @@ async def support(c: CallbackQuery):
         operators_kb(back="menu"),
     )
     await c.answer()
+
+
+# ---------- админ: смена реквизитов из Телеграма ----------
+def is_admin(m: Message) -> bool:
+    return m.from_user and m.from_user.id in ADMIN_IDS
+
+
+@dp.message(Command("req"))
+async def cmd_req(m: Message):
+    if not is_admin(m):
+        return
+    lines = [f"{k} = {code(v)}" for k, v in load_requisites().items()]
+    await m.answer(
+        "Текущие реквизиты:\n\n" + "\n".join(lines) +
+        "\n\nИзменить: /set ключ значение\nНапример: /set bit +972501234567",
+        parse_mode=ParseMode.HTML,
+    )
+
+
+@dp.message(Command("set"))
+async def cmd_set(m: Message, command: CommandObject):
+    if not is_admin(m):
+        return
+    parts = (command.args or "").split(maxsplit=1)
+    if len(parts) != 2 or parts[0] not in DEFAULT_REQUISITES:
+        keys = ", ".join(DEFAULT_REQUISITES)
+        await m.answer(f"Формат: /set ключ значение\nКлючи: {keys}", parse_mode=None)
+        return
+    key, value = parts[0], parts[1].strip()
+    save_requisite(key, value)
+    await m.answer(f"✅ {key} обновлён:\n{code(value)}", parse_mode=ParseMode.HTML)
 
 
 async def main():
